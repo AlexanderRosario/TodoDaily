@@ -30,7 +30,7 @@ fun EditAlertDialog(
     onDismiss: () -> Unit = {},
     onConfirm: (title: String, description: String, alarmDate: Long) -> Unit,
 ) {
-    var showModal = homeViewModel.isDialogDate.value
+    val showModal = homeViewModel.isDialogDate.value
     val title : String by homeViewModel.title.observeAsState(initial = taskModel.task)
     val description: String by homeViewModel.description.observeAsState(initial = taskModel.description)
 

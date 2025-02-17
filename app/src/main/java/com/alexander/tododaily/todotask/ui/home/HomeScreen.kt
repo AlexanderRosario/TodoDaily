@@ -97,6 +97,54 @@ fun HomeScreen(
         }
     ) { PaddingValues ->
 
+        val isDialogShowDelete = homeViewModel.isDialogShowDelete.value
+        val isDialogShowUpdate = homeViewModel.isDialogShowUpdate.value
+
+
+
+        if (isDialogShowDelete) {
+            AlertDialogConfir(
+                "Borrar",
+                "Estas Segur@?",
+                onDismiss = {
+                    homeViewModel.onChangeShowDialog()
+                    homeViewModel.clearSelectedTask()
+                            },
+
+                onConfirm = {
+//                    homeViewModel.onSelectTask(taskModel) // Guardar la tarea seleccionada
+
+                    homeViewModel.deleteTask(homeViewModel.selectedTask.value!!)
+                    homeViewModel.clearSelectedTask()
+                    homeViewModel.onChangeShowDialog()
+
+                })
+
+        }
+        if (isDialogShowUpdate) {
+
+            EditAlertDialog(
+
+                taskModel =  homeViewModel.selectedTask.value!!,
+                homeViewModel = homeViewModel,
+                onConfirm =  {title, description, alarmDate ->
+                    Log.i("jr", "${title},${description},${alarmDate}")
+
+                    homeViewModel.updateSelectedTask(title = title, description = description , alarmDate = alarmDate)
+                    homeViewModel.onChangeShowDialogEdit()
+                    homeViewModel.updateTask( homeViewModel.selectedTask.value!!)
+                    homeViewModel.clearSelectedTask()
+
+                },
+                onDismiss = {
+
+                    homeViewModel.clearSelectedTask()
+                    homeViewModel.onChangeShowDialogEdit()
+                }
+            )
+
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -118,6 +166,7 @@ fun HomeScreen(
 fun BodyHome(homeViewModel: HomeViewModel) {
     val taskModels: List<TaskModel> by homeViewModel.tasks.collectAsState()
 
+
     LaunchedEffect(Unit) {
         homeViewModel.getTasks()
     }
@@ -138,9 +187,6 @@ fun TaskField(
     taskModel: TaskModel,
     homeViewModel: HomeViewModel
 ) {
-    val isDialogShowDelete = homeViewModel.isDialogShowDelete.value
-    val isDialogShowUpdate = homeViewModel.isDialogShowUpdate.value
-
 
 
     Card(
@@ -149,44 +195,7 @@ fun TaskField(
 
         )
     ) {
-        if (isDialogShowDelete) {
-            AlertDialogConfir(
-                "Borrar",
-                "Estas Segur@?",
-                onDismiss = {
-                    homeViewModel.onChangeShowDialog() },
 
-                onConfirm = {
-//                    homeViewModel.onSelectTask(taskModel) // Guardar la tarea seleccionada
-
-                    homeViewModel.deleteTask(homeViewModel.selectedTask.value!!)
-                    homeViewModel.onChangeShowDialog()
-
-                })
-
-        }
-        if (isDialogShowUpdate) {
-
-            EditAlertDialog(
-
-                taskModel =  homeViewModel.selectedTask.value!!,
-                homeViewModel = homeViewModel,
-                 onConfirm =  {title,description,alarmDate->
-                     Log.i("jr", "${title},${description},${alarmDate}")
-
-                     homeViewModel.updateSelectedTask(title = title, description = description , alarmDate = alarmDate)
-                     homeViewModel.onChangeShowDialogEdit()
-                     homeViewModel.updateTask( homeViewModel.selectedTask.value!!)
-
-                 },
-                onDismiss = {
-
-
-                    homeViewModel.onChangeShowDialogEdit()
-                }
-            )
-
-        }
         var expanded by remember { mutableStateOf(false) }
 
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -257,7 +266,7 @@ fun TaskField(
                                         } else if (it.id == 2) {
                                             homeViewModel.onSelectTask(taskModel)
                                             homeViewModel.onChangeShowDialog()
-//                                            homeViewModel.clearSelectedTask()
+//
                                         }
                                     },
 

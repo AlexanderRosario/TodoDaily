@@ -43,9 +43,20 @@ class HomeViewModel @Inject constructor(
     val alarmDate: LiveData<Long> = _alarmDate
 
     fun onChangeTask(title: String, description: String, alarmDate: Long?) {
+
+
         _title.value = title
         _description.value = description
         _alarmDate.value = alarmDate?:0L
+    }
+
+
+    private val _selectedTask = mutableStateOf<TaskModel?>(null)
+    val selectedTask: State<TaskModel?> = _selectedTask
+
+    fun onSelectTask(task: TaskModel) {
+
+        _selectedTask.value = task
     }
 
     val menuOptions: List<menuState> = listOf(
@@ -72,15 +83,11 @@ class HomeViewModel @Inject constructor(
     val tasks: StateFlow<List<TaskModel>> = _tasks
 
 
-    private val _selectedTask = mutableStateOf<TaskModel?>(null)
-    val selectedTask: State<TaskModel?> = _selectedTask
 
-    fun onSelectTask(task: TaskModel) {
-        _selectedTask.value = task
-    }
 
     fun clearSelectedTask() {
         _selectedTask.value = null
+
     }
 
     private val _isDialogDate = mutableStateOf(false)
@@ -130,7 +137,6 @@ class HomeViewModel @Inject constructor(
                 }
             }
         }
-        clearSelectedTask()
 
     }
 
