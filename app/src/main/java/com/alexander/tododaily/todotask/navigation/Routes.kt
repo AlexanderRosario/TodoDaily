@@ -4,9 +4,9 @@ package com.alexander.tododaily.todotask.navigation
 sealed class Routes(val route:String)
 
 {
-    object login: Routes("login")
-    object home: Routes("home")
-    object signup: Routes("signup")
+    object Login: Routes("login")
+    object Home: Routes("home")
+    object Signup: Routes("signup")
     object Pantalla4: Routes("Pantalla4/{age}"){
 
         fun createRoute(age:Int) = "Pantalla4/$age"

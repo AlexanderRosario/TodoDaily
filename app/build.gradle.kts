@@ -68,8 +68,7 @@ dependencies {
     //Icone Extended
     implementation("androidx.compose.material:material-icons-extended-android:1.7.5")
 
-    val nav_version = "2.8.4"
-    implementation("androidx.navigation:navigation-compose:$nav_version")
+
 
     // Import the Firebase BoM
     implementation(platform("com.google.firebase:firebase-bom:33.8.0"))
@@ -92,12 +91,25 @@ dependencies {
     //HiltInjection
     implementation("com.google.dagger:hilt-android:2.51.1")
     kapt("com.google.dagger:hilt-android-compiler:2.51.1")
+    val nav_version = "2.8.4"
+    implementation("androidx.navigation:navigation-compose:$nav_version")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.4")
+    implementation("androidx.hilt:hilt-navigation-fragment:1.0.0")
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+//    implementation(libs.hilt.android.core)
+//    implementation(libs.androidx.hilt.navigation.compose)
+//    ksp(libs.hilt.compiler)
+
+
+
+    implementation(platform("androidx.compose:compose-bom:2025.01.01"))
 
 //coroutines
 //    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.9")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.5.1")
+    implementation("androidx.core:core-ktx:1.15.0")
 
 }
 

@@ -1,11 +1,9 @@
 package com.alexander.tododaily.todotask.ui.home
 
+import android.icu.text.CaseMap.Title
 import android.util.Log
 import androidx.compose.runtime.State
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -14,6 +12,7 @@ import com.alexander.tododaily.todotask.domain.AddTaskUseCase
 import com.alexander.tododaily.todotask.domain.DeleteTaskUseCase
 import com.alexander.tododaily.todotask.domain.GetTasksUseCase
 import com.alexander.tododaily.todotask.domain.UpdateTaskUseCase
+import com.alexander.tododaily.todotask.ui.model.TaskClasification
 import com.alexander.tododaily.todotask.ui.model.TaskModel
 import com.alexander.tododaily.todotask.ui.model.menuState
 import com.google.firebase.auth.FirebaseAuth
@@ -34,19 +33,25 @@ class HomeViewModel @Inject constructor(
 ) : ViewModel() {
 
 
+    private val _title = MutableLiveData<String>()
+    private val _description = MutableLiveData<String>()
+    private val _alarmDate = MutableLiveData<Long>()
+
+
+    val title: LiveData<String> = _title
+    val description: LiveData<String> = _description
+    val alarmDate: LiveData<Long> = _alarmDate
+
+    fun onChangeTask(title: String, description: String, alarmDate: Long?) {
+        _title.value = title
+        _description.value = description
+        _alarmDate.value = alarmDate?:0L
+    }
+
     val menuOptions: List<menuState> = listOf(
-        menuState(1, "Actualizar"),
-        menuState(2, "Borrar")
+        menuState(1, "Actualizar"), menuState(2, "Borrar")
     )
 
-
-    private val _isFeatureEnabled = mutableStateOf(false)
-    val isFeatureEnabled: State<Boolean> = _isFeatureEnabled
-
-    // Método para cambiar el estado
-    fun toggleFeature() {
-        _isFeatureEnabled.value = !_isFeatureEnabled.value
-    }
 
     val calendar = Calendar.getInstance()
     val currentDate =
@@ -66,24 +71,37 @@ class HomeViewModel @Inject constructor(
     // Variable pública para exponer la lista de tareas (solo lectura)
     val tasks: StateFlow<List<TaskModel>> = _tasks
 
-    private val _task = mutableStateOf(TaskModel())
-    val task: State<TaskModel> = _task
-    fun onChangeDeleteTask(task: TaskModel) {
-        _task.value = task
 
+    private val _selectedTask = mutableStateOf<TaskModel?>(null)
+    val selectedTask: State<TaskModel?> = _selectedTask
+
+    fun onSelectTask(task: TaskModel) {
+        _selectedTask.value = task
+    }
+
+    fun clearSelectedTask() {
+        _selectedTask.value = null
+    }
+
+    private val _isDialogDate = mutableStateOf(false)
+    val isDialogDate: State<Boolean> = _isDialogDate
+
+    fun onChangeShowDDate() {
+        _isDialogDate.value = !_isDialogDate.value
     }
 
 
+//
     private val _isDialogShowDelete = mutableStateOf(false)
     val isDialogShowDelete: State<Boolean> = _isDialogShowDelete
 
-    fun onChangeShowDialogDele() {
+    fun onChangeShowDialog() {
         _isDialogShowDelete.value = !_isDialogShowDelete.value
     }
 
     private val _isDialogShowUpdate = mutableStateOf(false)
     val isDialogShowUpdate: State<Boolean> = _isDialogShowUpdate
-    fun onChangeShowDialogUpdate() {
+    fun onChangeShowDialogEdit() {
 
         _isDialogShowUpdate.value = !_isDialogShowUpdate.value
     }
@@ -112,6 +130,7 @@ class HomeViewModel @Inject constructor(
                 }
             }
         }
+        clearSelectedTask()
 
     }
 
@@ -147,6 +166,23 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    fun updateSelectedTask(title: String, description: String, alarmDate: Long) {
+        _tasks.value = _tasks.value.map { task ->
+            if (task == _selectedTask.value) {
+                task.copy(
+                    task = title,
+                    description = description,
+                    alarmDate = alarmDate
+                )
+            } else {
+                task
+            }
+
+        }
+
+
+    }
+
 
     fun onChangeShowDialogDeleAll() {
         _isDialogShowDeleteAll.value = !_isDialogShowDeleteAll.value
@@ -158,8 +194,7 @@ class HomeViewModel @Inject constructor(
     fun deleteSelectedTasks() {
         _tasks.value.map { task ->
             if (task.isChecked) {
-                onChangeDeleteTask(task)
-                deleteTask()
+                deleteTask(task)
             } else {
                 task
             }
@@ -168,10 +203,13 @@ class HomeViewModel @Inject constructor(
 
     }
 
-    fun deleteTask() {
+    fun deleteTask(taskModel: TaskModel) {
+        Log.i("JR", taskModel.toString())
+        val deleteTask = _tasks.value.find { it.id == taskModel.id } ?: taskModel
+
         viewModelScope.launch {
-//            Log.i("JR", _task.value.toString())
-            val result = deleteTaskUseCase(task.value)
+            val result = deleteTaskUseCase(deleteTask)
+
             if (result.isSuccess) {
                 getTasks()
             } else {
@@ -187,15 +225,24 @@ class HomeViewModel @Inject constructor(
 
 
     fun updateTask(taskModel: TaskModel) {
+        Log.i("jrsele2", taskModel.toString())
+
         val updatedTask = _tasks.value.find { it.id == taskModel.id } ?: taskModel
 //
+        Log.i("jripdatesele3", taskModel.toString())
+
         viewModelScope.launch {
             val result = updateTaskUseCase(updatedTask)
             if (result.isSuccess) {
-//                getTasks()
+                getTasks()
+                Log.i("jrsucces4", taskModel.toString())
+
             } else {
+                Log.i("jrError5", taskModel.toString())
+
                 val exception = result.exceptionOrNull()
                 if (exception?.message == "User not authenticated") {
+
 //                    _navigateToLogin.value = true // Redirigir al login
                 } else {
                     _state.value = exception?.message
@@ -208,13 +255,15 @@ class HomeViewModel @Inject constructor(
     private val _showLogOutDialog = mutableStateOf(false)
     val showLogOutDialog: State<Boolean> = _showLogOutDialog
 
-    fun ChangeshowLogoutDialog() {
-        Log.i("jr", showLogOutDialog.value.toString())
+    fun ChangeShowLogOutDialog() {
+
         _showLogOutDialog.value = !showLogOutDialog.value
+
     }
 
-    fun UserLogOut() {
+    fun LogOut() {
         auth.signOut()
+
 
     }
 

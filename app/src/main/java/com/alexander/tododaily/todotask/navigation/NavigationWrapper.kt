@@ -1,16 +1,17 @@
 package com.alexander.tododaily.todotask.navigation
 
+ import androidx.hilt.navigation.compose.hiltViewModel
+// import androidx.navigation.compose.getBackStackEntry
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+ import androidx.compose.runtime.LaunchedEffect
+ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController//
 import androidx.navigation.compose.NavHost//
-import androidx.navigation.compose.composable//
-import com.alexander.tododaily.todotask.ui.IntroScreen.IntroViewModel
-import com.alexander.tododaily.todotask.ui.home.HomeScreen
-import com.alexander.tododaily.todotask.ui.home.HomeViewModel
-import com.alexander.tododaily.todotask.ui.login.LoginScreen
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+ import com.alexander.tododaily.todotask.ui.home.HomeScreen
+ import com.alexander.tododaily.todotask.ui.home.HomeViewModel
+ import com.alexander.tododaily.todotask.ui.login.LoginScreen
 import com.alexander.tododaily.todotask.ui.login.LoginViewModel
 import com.alexander.tododaily.todotask.ui.signup.SignUpScreen
 import com.alexander.tododaily.todotask.ui.signup.SignUpViewModel
@@ -18,33 +19,34 @@ import com.alexander.tododaily.todotask.ui.signup.SignUpViewModel
 
 @Composable
 fun NavigationWrapper(
-    navHostController: NavHostController,
-    loginViewModel: LoginViewModel,
-    introViewModel: IntroViewModel,
-    signUpViewModel: SignUpViewModel,
-    homeViewModel: HomeViewModel
-
-) {
+    navHostController: NavHostController = rememberNavController(),
+    ) {
 
 
     NavHost(
         navController = navHostController,
-        startDestination = Routes.login.route
+        startDestination = Routes.Login.route
     ) {
-        composable(Routes.login.route) {
+        composable(Routes.Login.route) {
+            val loginViewModel : LoginViewModel = hiltViewModel()
+
             LoginScreen(
-                loginViewModel = loginViewModel,
-                navHostController
+            loginViewModel = loginViewModel,
+            navHostController
             )
         }
+//
+        composable(Routes.Signup.route) {
+            val signUpViewModel: SignUpViewModel = hiltViewModel()
 
-        composable(Routes.signup.route) {
             SignUpScreen(
+
                 signUpViewModel = signUpViewModel,
                 navHostController
             )
         }
-        composable(Routes.home.route) {
+        composable(Routes.Home.route) {
+            val homeViewModel: HomeViewModel = hiltViewModel()
             HomeScreen(
                 homeViewModel = homeViewModel,
 
@@ -52,19 +54,22 @@ fun NavigationWrapper(
             )
         }
     }
-
-    val isUserAuthenticated by loginViewModel.isUserAuthenticated.collectAsState()
-
-
-    LaunchedEffect(isUserAuthenticated ) {
-        if (isUserAuthenticated) {
-            navHostController.navigate(Routes.home.route) {
-                popUpTo(Routes.login.route) { inclusive = true }
-            }
-        } else {
-            navHostController.navigate(Routes.login.route) {
-                popUpTo(Routes.home.route) { inclusive = true }
-            }
-        }
-    }
+//
+//    val isUserAuthenticated by loginViewModel.isUserAuthenticated.collectAsState()
+//
+//
+//    LaunchedEffect(isUserAuthenticated ) {
+//        if (isUserAuthenticated) {
+//            navHostController.navigate(Routes.Home.route) {
+//                popUpTo(Routes.Login.route) { inclusive = true }
+//            }
+//        } else {
+//            navHostController.navigate(Routes.Login.route) {
+//                popUpTo(Routes.Home.route) { inclusive = true }
+//            }
+//        }
+//    }
 }
+
+
+

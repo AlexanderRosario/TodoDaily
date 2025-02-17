@@ -104,7 +104,7 @@ fun FooterLogin(navHostController: NavHostController) {
         Text(text = "Log In",
             fontWeight = FontWeight.SemiBold,
             textDecoration = TextDecoration.Underline,
-            modifier = Modifier.clickable {navHostController.navigate(Routes.login.route) })
+            modifier = Modifier.clickable {navHostController.navigate(Routes.Login.route) })
 
     }
 

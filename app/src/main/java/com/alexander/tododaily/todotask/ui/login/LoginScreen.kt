@@ -17,7 +17,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
+//import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -31,6 +31,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -45,6 +46,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -57,25 +59,45 @@ fun LoginScreen(
     loginViewModel: LoginViewModel,
     navHostController: NavHostController
 ) {
+    val isUserAuthenticated by loginViewModel.isUserAuthenticated.observeAsState(false)
+
+    LaunchedEffect(isUserAuthenticated) {
+        if (isUserAuthenticated) {
+            navHostController.navigate(Routes.Home.route) {
+                popUpTo(Routes.Login.route) { inclusive = true }
+            }
+        }
+    }
 
     Scaffold(Modifier.background(Color(249, 245, 244)
         )
     ) { PaddingValues ->
 
+
+
+//        when(loginViewModel.uiState){
+////            is SignedOut ->  // Display signed out UI components
+////            is InProgress ->
+////            is Error ->      // Display error toast
+//
+//            // Using the SignIn state as a trigger to navigate
+////            is SignIn ->     navController.navigate(...)
+//        }
+//
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(PaddingValues)
                 .background(Color(249, 245, 244))
 //                .background(Color(243, 239, 238))
-                .verticalScroll(rememberScrollState())
+//                .verticalScroll(rememberScrollState())
         ) {
             HeadSigin()
             Spacer(Modifier.padding(30.dp))
 
             BodySigin(loginViewModel, navHostController)
             Spacer(Modifier.padding(15.dp))
-            FooterSigin(navHostController)
+            FooterLogin(navHostController)
 
 
         }
@@ -83,26 +105,7 @@ fun LoginScreen(
     }
 }
 
-@Composable
-fun FooterSigin(navHostController:NavHostController) {
 
-//    Spacer(Modifier.padding(16.dp))
-
-
-    Row(
-        modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center
-    ) {
-
-        Text(text = "Don't have an account? ")
-
-        Text(text = "Sign up",
-            fontWeight = FontWeight.SemiBold,
-            textDecoration = TextDecoration.Underline,
-            modifier = Modifier.clickable { navHostController.navigate(Routes.signup.route )})
-
-    }
-
-}
 
 @Composable
 fun BodySigin(loginViewModel: LoginViewModel, navHostController: NavHostController) {
@@ -317,6 +320,8 @@ fun SocialMediaSigin() {
     }
 }
 
+
+
 @Composable
 fun ButtonConfirmation(
     text: String,
@@ -334,3 +339,24 @@ fun ButtonConfirmation(
         Text(text = text)
     }
 }
+
+
+
+
+@Composable
+fun FooterLogin(navHostController:NavHostController) {
+    Row(
+        modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center
+    ) {
+
+        Text(text = "Don't have an account? ")
+
+        Text(text = "Sign up",
+            fontWeight = FontWeight.SemiBold,
+            textDecoration = TextDecoration.Underline,
+            modifier = Modifier.clickable { navHostController.navigate(Routes.Signup.route )})
+
+    }
+
+}
+

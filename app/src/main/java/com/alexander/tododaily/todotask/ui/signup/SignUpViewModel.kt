@@ -54,7 +54,7 @@ class SignUpViewModel @Inject constructor(
                 password = password.value.orEmpty()
             )
             if (result.isSuccess) {
-                navHostController.navigate(Routes.home.route)
+                navHostController.navigate(Routes.Home.route)
                 _registrationState.value = RegistrationState.Success
             } else {
                 _registrationState.value =

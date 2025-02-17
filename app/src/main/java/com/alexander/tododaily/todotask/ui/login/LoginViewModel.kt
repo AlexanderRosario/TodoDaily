@@ -10,7 +10,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import com.alexander.tododaily.todotask.navigation.Routes
 import com.alexander.tododaily.todotask.domain.LoginUseCase
-import com.alexander.tododaily.todotask.ui.model.LoginState
+import com.alexander.tododaily.todotask.ui.model.UiState
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,16 +21,25 @@ import javax.inject.Inject
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val loginUseCase: LoginUseCase,
-//    private val homeViewModel: HomeViewModel,
     private val auth: FirebaseAuth
 ) : ViewModel() {
 
-    private val _isUserAuthenticated = MutableStateFlow(false)
-    val isUserAuthenticated: StateFlow<Boolean> = _isUserAuthenticated
+
+    private val _isUserAuthenticated = MutableLiveData<Boolean>()
+    val isUserAuthenticated: LiveData<Boolean> get() = _isUserAuthenticated
+
+    init {
+        checkUserSession()
+    }
 
 
-    private val _loginState = MutableLiveData<LoginState>()
-    val loginState: LiveData<LoginState> get() = _loginState
+    private fun checkUserSession() {
+        _isUserAuthenticated.value = auth.currentUser != null
+    }
+
+
+    private val _uiState = MutableLiveData<UiState>()
+    val uiState: LiveData<UiState> get() = _uiState
 
 
     private val _errorState = mutableStateOf<String?>(null)
@@ -61,18 +70,22 @@ class LoginViewModel @Inject constructor(
     fun enableLogin(email: String, password: String) =
         Patterns.EMAIL_ADDRESS.matcher(email).matches() && password.length > 6
 
+
     fun onLoginClick(navHostController: NavHostController) {
         viewModelScope.launch {
-            _loginState.value = LoginState.Loading
+            _uiState.value = UiState.InProgress
             val result = loginUseCase(email.value.orEmpty(), password = password.value.orEmpty())
-             _loginState.value = if (result.isSuccess) {
-                 navHostController.navigate(Routes.home.route)
+            _uiState.value = if (result.isSuccess) {
+                navHostController.navigate(Routes.Home.route)
+                {
+                    popUpTo(Routes.Login.route) { inclusive = true }
+                }
 //                 homeViewModel.getTasks()
-                 LoginState.Success
+                UiState.Success
 
-             } else {
-                 LoginState.Error(result.exceptionOrNull()?.message ?: "Unknown error")
-             }
+            } else {
+                UiState.Error(result.exceptionOrNull()?.message ?: "Unknown error")
+            }
         }
     }
 

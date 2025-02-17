@@ -10,19 +10,25 @@ data class TaskModel(
     var id: Long = System.currentTimeMillis(),
     var uid: String? = null,
     var task: String = "",
+    var description: String = "",
     var taskClasification: String = "",
     val todayDate: String = "", //get from kotlin
+    var alarmDate:  Long? = null,
     var isEnable: Boolean = true,
     var isChecked: Boolean = false,
     var indicatorVisibility: Boolean = true
 )
 
-sealed class LoginState {
-    object Loading : LoginState()
-    object Success : LoginState()
-    data class Error(val message: String) : LoginState()
-}
 
+sealed class UiState {
+    object Loading : UiState()
+    object Success : UiState()
+    object SignedOut : UiState()
+    object InProgress : UiState()
+    object SignIn : UiState()
+    data class Error(val message: String) : UiState()
+
+}
 sealed class RegistrationState {
     object Loading : RegistrationState()
     object Success : RegistrationState()
@@ -37,6 +43,12 @@ data class menuState (
 
 )
 //    data class Error(val message: String) : menuState()
+
+data class TaskClasification(
+    val id: Int,
+    val taskClasification:String,
+
+)
 
 
 

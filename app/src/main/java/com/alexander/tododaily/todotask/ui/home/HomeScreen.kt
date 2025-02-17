@@ -1,7 +1,7 @@
 package com.alexander.tododaily.todotask.ui.home
 
 
-import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -31,7 +31,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -53,8 +52,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -63,16 +60,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.navigation.NavHostController
 import com.alexander.tododaily.todotask.navigation.Routes
 import com.alexander.tododaily.todotask.ui.model.TaskModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import kotlin.math.log
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     homeViewModel: HomeViewModel,
@@ -80,10 +76,12 @@ fun HomeScreen(
     navHostController: NavHostController
 ) {
 //    val currentRoute = currentNavBackStackEntry?.destination?.route ?: AllDestinations.HOME
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
+//    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
 
     val day: String = "Today"
-    Scaffold(modifier = Modifier.background(Color(249, 245, 244)).windowInsetsPadding(WindowInsets.safeDrawing),
+    Scaffold(modifier = Modifier
+        .background(Color(249, 245, 244))
+        .windowInsetsPadding(WindowInsets.safeDrawing),
         topBar = {
             TopAppbarHome(
                 dateTime = day,
@@ -98,6 +96,7 @@ fun HomeScreen(
             }
         }
     ) { PaddingValues ->
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -118,9 +117,11 @@ fun HomeScreen(
 @Composable
 fun BodyHome(homeViewModel: HomeViewModel) {
     val taskModels: List<TaskModel> by homeViewModel.tasks.collectAsState()
+
     LaunchedEffect(Unit) {
         homeViewModel.getTasks()
     }
+
     LazyColumn(
         modifier = Modifier.padding(horizontal = 12.dp),
         verticalArrangement = Arrangement.spacedBy(22.dp)
@@ -151,20 +152,39 @@ fun TaskField(
         if (isDialogShowDelete) {
             AlertDialogConfir(
                 "Borrar",
-                "Estas Seguro?",
-                { homeViewModel.onChangeShowDialogDele() },
-                {
-                    homeViewModel.deleteTask()
-                    homeViewModel.onChangeShowDialogDele()
+                "Estas Segur@?",
+                onDismiss = {
+                    homeViewModel.onChangeShowDialog() },
+
+                onConfirm = {
+//                    homeViewModel.onSelectTask(taskModel) // Guardar la tarea seleccionada
+
+                    homeViewModel.deleteTask(homeViewModel.selectedTask.value!!)
+                    homeViewModel.onChangeShowDialog()
+
                 })
 
         }
         if (isDialogShowUpdate) {
-            AlertDialogConfir(
-                title = "Actualizar",
-                description = "Realizar cambios!",
-                { homeViewModel.onChangeShowDialogUpdate() },
-                {})
+
+            EditAlertDialog(
+
+                taskModel =  homeViewModel.selectedTask.value!!,
+                homeViewModel = homeViewModel,
+                 onConfirm =  {title,description,alarmDate->
+                     Log.i("jr", "${title},${description},${alarmDate}")
+
+                     homeViewModel.updateSelectedTask(title = title, description = description , alarmDate = alarmDate)
+                     homeViewModel.onChangeShowDialogEdit()
+                     homeViewModel.updateTask( homeViewModel.selectedTask.value!!)
+
+                 },
+                onDismiss = {
+
+
+                    homeViewModel.onChangeShowDialogEdit()
+                }
+            )
 
         }
         var expanded by remember { mutableStateOf(false) }
@@ -174,6 +194,8 @@ fun TaskField(
                 checked = taskModel.isChecked,
                 onCheckedChange = {
                     homeViewModel.onClickCheckedTask(taskModel)
+//                    homeViewModel.updateTask(homeViewModel.selectedTask.value!!)
+
                     homeViewModel.updateTask(taskModel)
                 },
                 colors = CheckboxDefaults.colors(
@@ -196,12 +218,8 @@ fun TaskField(
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
                     disabledTextColor = if (taskModel.isEnable) {
-
-
                         Color.Black
                     } else {
-
-
                         Color.Gray
                     },
                     disabledContainerColor = if (taskModel.isEnable) {
@@ -231,15 +249,15 @@ fun TaskField(
                                     },
                                     onClick = {
                                         expanded = !expanded
-
                                         if (it.id == 1) {
-                                            homeViewModel.onChangeShowDialogUpdate()
+                                            homeViewModel.onSelectTask(taskModel)
+                                            homeViewModel.onChangeShowDialogEdit()
 
 
                                         } else if (it.id == 2) {
-                                            homeViewModel.onChangeShowDialogDele()
-                                            homeViewModel.onChangeDeleteTask(taskModel)
-                                        } else {
+                                            homeViewModel.onSelectTask(taskModel)
+                                            homeViewModel.onChangeShowDialog()
+//                                            homeViewModel.clearSelectedTask()
                                         }
                                     },
 
@@ -311,8 +329,8 @@ fun BottonAddTask(modifier: Modifier, homeViewModel: HomeViewModel) {
 
 @Composable
 fun AlertDialogConfir(
-    title: String = "Borrar",
-    description: String = "Deseas Borrar esta tarea?",
+    title: String,
+    description: String,
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
 ) {
@@ -379,7 +397,7 @@ fun TopAppbarHome(
                 )
             }
             IconButton(onClick = {
-                homeViewModel.ChangeshowLogoutDialog()
+                homeViewModel.ChangeShowLogOutDialog()
             }) {
                 Icon(
                     imageVector = Icons.Filled.Logout,
@@ -397,20 +415,23 @@ fun TopAppbarHome(
             onDismiss = { homeViewModel.onChangeShowDialogDeleAll() },
             onConfirm = {
                 homeViewModel.deleteSelectedTasks()
-                homeViewModel. onChangeShowDialogDeleAll()
+                homeViewModel.onChangeShowDialogDeleAll()
             })
 
     }
 
-    ShowLogOutDialog({
-        homeViewModel.UserLogOut()
-        homeViewModel.ChangeshowLogoutDialog()
-        navHostController.navigate(Routes.login.route) {
-            popUpTo(Routes.home.route) {
-                inclusive = true
+    ShowLogOutDialog(
+        {
+            homeViewModel.LogOut()
+            homeViewModel.ChangeShowLogOutDialog()
+            navHostController.navigate(Routes.Login.route) {
+                popUpTo(Routes.Home.route) {
+                    inclusive = true
+                }
             }
-        }
-    }, { homeViewModel.ChangeshowLogoutDialog() }, homeViewModel.showLogOutDialog.value)
+        },
+        { homeViewModel.ChangeShowLogOutDialog() }, homeViewModel.showLogOutDialog.value
+    )
 }
 
 
