@@ -57,6 +57,10 @@ class HomeViewModel @Inject constructor(
     fun onSelectTask(task: TaskModel) {
 
         _selectedTask.value = task
+        _title.value = task.task
+        _description.value = task.description
+        _alarmDate.value = task.alarmDate ?: 0L
+
     }
 
     val menuOptions: List<menuState> = listOf(
