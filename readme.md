@@ -39,5 +39,5 @@ Permite modificar el contenido de una nota existente.
 
 1. Clona el repositorio:  
    ```sh
-   git clone https://github.com/tu-repositorio.git
+   git clone https://github.com/AlexanderRosario/TodoDaily
 
